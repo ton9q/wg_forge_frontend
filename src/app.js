@@ -1,8 +1,26 @@
-// this is an example of improting data from JSON
-import 'orders' from '../data/orders.json';
+import Header from './components/header/header';
+import Main from './components/main/main';
+import Footer from './components/footer/footer';
 
-export default (function () {
-    // YOUR CODE GOES HERE
-    // next line is for example only
-    document.getElementById("app").innerHTML = "<h1>Hello WG Forge</h1>";
-}());
+import { loadFavicon, getSpanWithArrow } from './utils/index';
+
+import './style/style.css';
+
+export default (function() {
+  const app = `
+    <header>${Header}</header>
+    <main>${Main}</main>
+    <footer>${Footer}</footer>
+  `;
+
+  loadFavicon();
+
+  document.getElementById('app').innerHTML = app;
+
+  document.querySelectorAll('table .user-data').forEach(userDataElement => {
+    userDataElement.querySelector('a').addEventListener('click', (e) => {
+      e.preventDefault();
+      userDataElement.querySelector('.user-details').classList.toggle('hidden');
+    });
+  });
+})()
