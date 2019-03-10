@@ -1,15 +1,37 @@
+import companies from '../data/companies.json';
+import orders from '../data/orders.json';
+import users from '../data/users.json';
+
 import Header from './components/header/header';
 import Main from './components/main/main';
 import Footer from './components/footer/footer';
 
-import { loadFavicon, getSpanWithArrow } from './utils/index';
+import Table from './components/main/table/table';
+import Head from './components/main/table/head/head';
+import BodyTable from './components/main/table/body/bodyTable' ;
+import StaticticsRows from './components/main/table/body/statisticsRows';
+
+import { 
+  loadFavicon, 
+  orderFieldMapping
+} from './utils/index';
 
 import './style/style.css';
 
 export default (function() {
+  const bodyTable = new BodyTable(companies, orders, users);
+
+  const HeadTemplate  = Head.create(orderFieldMapping);
+  const bodyTableTemplate = bodyTable.getBodyTableTemplate();
+  const statisticsRowsTemplate = StaticticsRows;
+
+  const table = new Table(HeadTemplate, [bodyTableTemplate, statisticsRowsTemplate]);
+  const tableTemplate = table.getTableTemplate();
+  const MainTemplate = Main(tableTemplate);
+
   const app = `
     <header>${Header}</header>
-    <main>${Main}</main>
+    <main>${MainTemplate}</main>
     <footer>${Footer}</footer>
   `;
 
@@ -17,10 +39,7 @@ export default (function() {
 
   document.getElementById('app').innerHTML = app;
 
-  document.querySelectorAll('table .user-data').forEach(userDataElement => {
-    userDataElement.querySelector('a').addEventListener('click', (e) => {
-      e.preventDefault();
-      userDataElement.querySelector('.user-details').classList.toggle('hidden');
-    });
-  });
+  BodyTable.addEventListenerOnUserInfo();
+  bodyTable.addEventListenerOnCells();
+  // Head.addEventListenerOnCells(bodyTable.sort);
 })()

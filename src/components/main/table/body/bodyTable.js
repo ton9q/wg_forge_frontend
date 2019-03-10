@@ -1,9 +1,12 @@
 import {
+  orderFieldMapping,
   getDateFromTimestamp,
   getBirthDayFromTimestamp,
   getCardReplacedStars, 
   getPrefixGender,
-  getObjectFromDataById
+  getObjectFromDataById,
+  compare,
+  getSpanWithArrow
 } from '../../../../utils/index';
 
 class BodyTable {
@@ -12,7 +15,8 @@ class BodyTable {
     this.orders = orders;
     this.users = users;
 
-    this.t;
+    this.tableDefault = this.getOrders();
+    this.table = this.getOrders();
   }
 
   static getTemplateUserInfo(userInfo) {
@@ -32,11 +36,11 @@ class BodyTable {
     `;
   }
 
-  static getTemplateOrder(order, userInfo) {
+  static getTemplateOrder(order) {
     return `
       <tr id='order_${order.id} class='order_${order.id}'>
         <td>${order.transaction_id}</td>
-        <td class='user-data'>${userInfo}</td>
+        <td class='user-data'>${BodyTable.getTemplateUserInfo(order.userInfo)}</td>
         <td>${getDateFromTimestamp(order.created_at)}</td>
         <td>$${order.total}</td>
         <td>${getCardReplacedStars(order.card_number)}</td>
@@ -61,21 +65,95 @@ class BodyTable {
       companyInfo
     };
   
-    const template = BodyTable.getTemplateUserInfo(userInfo)
-    return template;
+    return userInfo;
   };
 
   getOrders() {
     return this.orders.map(order => {
       const userInfo = this.getUserInfoById(order.user_id);
-      const template = BodyTable.getTemplateOrder(order, userInfo);
-      
-      return template;
+
+      const orderInfo = {
+        ...order,
+        userInfo
+      };
+
+      return orderInfo;
     });
   }
   
-  getArrayOrders() {
-    return this.getOrders().join('');
+  getOrdersTemplate(orders) {
+    return orders.map(order => {
+      return BodyTable.getTemplateOrder(order);
+    })
+
+  }
+  getBodyTableTemplate() {
+    return this.getOrdersTemplate(this.table).join('');
+  }
+
+  static addEventListenerOnUserInfo() {
+    document.querySelectorAll('table .user-data').forEach(userDataElement => {
+      userDataElement.querySelector('a').addEventListener('click', (e) => {
+        e.preventDefault();
+        userDataElement.querySelector('.user-details').classList.toggle('hidden');
+      });
+    });
+  }
+
+  addEventListenerOnCells() {
+    document.querySelectorAll('table th').forEach(th => {
+      th.addEventListener('click', e => {
+        e.preventDefault();
+  
+        if (th.querySelector('span') !== null) return;
+        // if (e.target.cellIndex === 4) return;
+        if (th.textContent === 'Card Number') return;
+
+        const span = getSpanWithArrow();
+  
+        document.querySelectorAll('table th').forEach(thEl => {
+          const spanEl =thEl.querySelector('span');
+          if(spanEl !== null) spanEl.remove();
+        });
+  
+        this.sort(e.target.cellIndex);
+        th.append(span);
+        document.querySelector('table tbody').innerHTML = this.getBodyTableTemplate();
+      })
+    });
+  }
+
+  sort(indexCell) {
+    let key = Object.keys(orderFieldMapping)[indexCell];
+
+    const userInfoKeys = [ 'first_name', 'last_name' ];
+    const locationKeys = [ 'order_country', 'order_ip'];
+
+    const compareArray = (a,b) => {
+      if (key !== 'userInfo' && key !== 'location') { //any standart key
+        return compare(a, b, key, key === 'total' ? 'number' : null);
+      }
+      
+      if (key === 'userInfo') {
+        for(let i = 0; i < userInfoKeys.length; i++) {
+          const result = compare(a[key], b[key], userInfoKeys[i]);
+          if (result !== 0) return result;
+        }
+  
+        return 0;
+      } 
+      
+      if (key === 'location') {
+        for(let i = 0; i < locationKeys.length; i++) {
+          const result = compare(a, b, locationKeys[i]);
+          if (result !== 0) return result;
+        }
+  
+        return 0;
+      }
+    }
+
+    this.table.sort(compareArray);
   }
 }
 

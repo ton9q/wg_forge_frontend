@@ -1,5 +1,7 @@
-const Head = {
-  create(object) {
+import { getSpanWithArrow } from '../../../../utils/index';
+
+class Head {
+  static create(object) {
     const headItemsArray = [];
 
     for (let key in object) {

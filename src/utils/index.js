@@ -2,9 +2,9 @@ import loadFavicon from './loadFavicon';
 
 const orderFieldMapping = {
   'transaction_id': 'Transaction ID',
-  'user_info': 'User Info',
-  'order_date': 'Order Date',
-  'order_amount': 'Order Amount',
+  'userInfo': 'User Info',
+  'created_at': 'Order Date',
+  'total': 'Order Amount',
   'card_number': 'Card Number',
   'card_type': 'Card Type',
   'location': 'Location',
@@ -50,6 +50,20 @@ const getObjectFromDataById = (data, id) => {
   return findedObj;
 };
 
+const compare = (a,b, keyArray, type) => {
+  if (!type) {
+    if (a[keyArray] < b[keyArray]) return -1;
+    else if (a[keyArray] > b[keyArray]) return 1;
+    return 0;
+  } 
+
+  if (type === 'number') {
+    if (Number(a[keyArray]) < Number(b[keyArray])) return -1;
+    else if (Number(a[keyArray]) > Number(b[keyArray])) return 1;
+    return 0;
+  }
+};
+
 export {
   loadFavicon,
   orderFieldMapping,
@@ -58,5 +72,6 @@ export {
   getCardReplacedStars,
   getSpanWithArrow,
   getPrefixGender,
-  getObjectFromDataById
+  getObjectFromDataById,
+  compare
 }

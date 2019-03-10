@@ -1,9 +1,9 @@
-import Table from './table/table';
-
-const Main = `
-  <div class='table-container'>
-    ${Table}
-  <div/>
-`;
+const Main = table => {
+  return `
+    <section class='table-container'>
+      ${table}
+    <section/>
+  `;
+}
 
 export default Main;

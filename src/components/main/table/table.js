@@ -1,29 +1,26 @@
-import companies from '../../../../data/companies.json';
-import orders from '../../../../data/orders.json';
-import users from '../../../../data/users.json';
+class Table {
+  constructor(head, body) {
+    this.head = head;
+    this.body = body;
+  };
 
-import { orderFieldMapping } from '../../../utils/index';
+  static template(head, body) {
+    return `
+      <table>
+        <thead>
+          <tr>${head}</tr>
+        </thead>
+        <tbody>
+          ${body}
+        </tbody>
+      </table>
+    `;
+  };
 
-import Head from './head/head';
-import BodyTable from './body/bodyTable' ;
-import StaticticsRows from './body/statisticsRows';
-
-const getTable = () => {
-  const bodyTable = new BodyTable(companies, orders, users);
-
-  const table = `
-    <table>
-      <thead>
-        <tr>${Head.create(orderFieldMapping)}</tr>
-      </thead>
-      <tbody>
-        ${bodyTable.getArrayOrders()}
-        ${StaticticsRows}
-      </tbody>
-    </table>
-  `;
-
-  return table;
+  getTableTemplate() {
+    const bodyTemplate = this.body.join('');
+    return Table.template(this.head, bodyTemplate);
+  }
 }
 
-export default getTable();
+export default Table;
