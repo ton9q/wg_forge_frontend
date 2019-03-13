@@ -9,7 +9,6 @@ import Footer from './components/footer/footer';
 import Table from './components/main/table/table';
 import Head from './components/main/table/head/head';
 import BodyTable from './components/main/table/body/bodyTable' ;
-import StaticticsRows from './components/main/table/body/statisticsRows';
 
 import { 
   loadFavicon, 
@@ -19,14 +18,14 @@ import {
 import './style/style.css';
 
 export default (function() {
-  const bodyTable = new BodyTable(companies, orders, users);
-
   const HeadTemplate  = Head.create(orderFieldMapping);
-  const bodyTableTemplate = bodyTable.getBodyTableTemplate();
-  const statisticsRowsTemplate = StaticticsRows;
 
-  const table = new Table(HeadTemplate, [bodyTableTemplate, statisticsRowsTemplate]);
+  const bodyTable = new BodyTable(companies, orders, users);
+  const bodyTableTemplate = bodyTable.getBodyTableTemplate(true);
+
+  const table = new Table(HeadTemplate, bodyTableTemplate);
   const tableTemplate = table.getTableTemplate();
+
   const MainTemplate = Main(tableTemplate);
 
   const app = `
@@ -41,5 +40,5 @@ export default (function() {
 
   BodyTable.addEventListenerOnUserInfo();
   bodyTable.addEventListenerOnCells();
-  // Head.addEventListenerOnCells(bodyTable.sort);
+  bodyTable.addListenerOnChangeInputValue();
 })()

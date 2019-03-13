@@ -9,14 +9,19 @@ import {
   getSpanWithArrow
 } from '../../../../utils/index';
 
+// import SearchRow from './../head/searchRow';
+import StaticticsRows from './statisticsRows';
+
 class BodyTable {
   constructor(companies, orders, users) {
     this.companies = companies;
     this.orders = orders;
     this.users = users;
 
-    this.tableDefault = this.getOrders();
-    this.table = this.getOrders();
+    this.table = [];
+
+    this.arrayTotalFemale = [];
+    this.arrayTotalMale = [];
   }
 
   static getTemplateUserInfo(userInfo) {
@@ -50,12 +55,21 @@ class BodyTable {
     `;
   }
 
-  getUserInfoById(id) {
-    let userInfo = getObjectFromDataById(this.users, id);
+  static addEventListenerOnUserInfo() {
+    document.querySelectorAll('table .user-data').forEach(userDataElement => {
+      userDataElement.querySelector('a').addEventListener('click', (e) => {
+        e.preventDefault();
+        userDataElement.querySelector('.user-details').classList.toggle('hidden');
+      });
+    });
+  }
+
+  static getUserInfoById(users, companies, id) {
+    let userInfo = getObjectFromDataById(users, id);
   
     const gender = getPrefixGender(userInfo.gender);
     const birthday = getBirthDayFromTimestamp(userInfo.birthday);
-    const infoAboutCompany = getObjectFromDataById(this.companies, userInfo.company_id);
+    const infoAboutCompany = getObjectFromDataById(companies, userInfo.company_id);
     const companyInfo = infoAboutCompany === null ? { url: '#', title: '', industry: ''} : infoAboutCompany;
 
     userInfo = {
@@ -67,63 +81,23 @@ class BodyTable {
   
     return userInfo;
   };
-
-  getOrders() {
-    return this.orders.map(order => {
-      const userInfo = this.getUserInfoById(order.user_id);
-
-      const orderInfo = {
-        ...order,
-        userInfo
-      };
-
-      return orderInfo;
-    });
-  }
   
-  getOrdersTemplate(orders) {
-    return orders.map(order => {
-      return BodyTable.getTemplateOrder(order);
-    })
-
-  }
-  getBodyTableTemplate() {
-    return this.getOrdersTemplate(this.table).join('');
-  }
-
-  static addEventListenerOnUserInfo() {
-    document.querySelectorAll('table .user-data').forEach(userDataElement => {
-      userDataElement.querySelector('a').addEventListener('click', (e) => {
-        e.preventDefault();
-        userDataElement.querySelector('.user-details').classList.toggle('hidden');
-      });
+  static filterOrders(orders, value) {
+    return orders.filter(order => {
+      if (order.userInfo.first_name.toLowerCase().includes(value.toLowerCase())) return order;
+      if (order.userInfo.last_name.toLowerCase().includes(value.toLowerCase())) return order;
+      if (order.id.toString().includes(value.toString())) return order;
+      if (order.transaction_id.toLowerCase().includes(value.toLowerCase())) return order;
+      if (order.user_id.toString().includes(value.toString())) return order;
+      if (order.total.toString().includes(value.toString())) return order;
+      if (order.card_type.toLowerCase().includes(value.toLowerCase())) return order;
+      if (order.order_country.toLowerCase().includes(value.toLowerCase())) return order;
+      if (order.order_ip.toString().includes(value.toString())) return order;
+      return false;
     });
   }
 
-  addEventListenerOnCells() {
-    document.querySelectorAll('table th').forEach(th => {
-      th.addEventListener('click', e => {
-        e.preventDefault();
-  
-        if (th.querySelector('span') !== null) return;
-        // if (e.target.cellIndex === 4) return;
-        if (th.textContent === 'Card Number') return;
-
-        const span = getSpanWithArrow();
-  
-        document.querySelectorAll('table th').forEach(thEl => {
-          const spanEl =thEl.querySelector('span');
-          if(spanEl !== null) spanEl.remove();
-        });
-  
-        this.sort(e.target.cellIndex);
-        th.append(span);
-        document.querySelector('table tbody').innerHTML = this.getBodyTableTemplate();
-      })
-    });
-  }
-
-  sort(indexCell) {
+  static sortTable(table, indexCell) {
     let key = Object.keys(orderFieldMapping)[indexCell];
 
     const userInfoKeys = [ 'first_name', 'last_name' ];
@@ -153,7 +127,126 @@ class BodyTable {
       }
     }
 
-    this.table.sort(compareArray);
+    table.sort(compareArray);
+    console.log(table)
+    return table;
+  }
+
+  static getOrdersTemplate(orders) {
+    return orders.map(order => {
+      return BodyTable.getTemplateOrder(order);
+    });
+  }
+
+  static emptyTable() {
+    return `
+      <tr>
+        <td colspan='7'>Nothing found</td>
+      </tr>
+    `;
+  }
+
+  getOrders(value) {
+    let arrayTotalFemale = [];
+    let arrayTotalMale = [];
+
+    let allOrders = this.orders.map(order => {
+      const userInfo = BodyTable.getUserInfoById(this.users, this.companies, order.user_id);
+
+      if (userInfo.gender.toLowerCase() === 'ms.') arrayTotalFemale.push(Number(order.total));
+      else arrayTotalMale.push(Number(order.total));
+
+      const orderInfo = {
+        ...order,
+        userInfo
+      };
+
+      return orderInfo;
+    });
+
+    if (value) {
+      allOrders = BodyTable.filterOrders(allOrders, value);
+
+      arrayTotalFemale = [];
+      arrayTotalMale = [];
+
+      allOrders.forEach(order => {
+        if (order.userInfo.gender.toLowerCase() === 'ms.') 
+          arrayTotalFemale.push(Number(order.total));
+        else 
+          arrayTotalMale.push(Number(order.total));
+      });
+    }
+
+    this.arrayTotalFemale = [...arrayTotalFemale];
+    this.arrayTotalMale = [...arrayTotalMale];
+
+    return allOrders;
+  }
+  
+  getBodyTableTemplate(first) {
+    if (first) this.table = this.getOrders();
+
+    let statisticsRowsData;
+
+    if (this.table.length !== 0) {
+    statisticsRowsData = StaticticsRows.getObjectDataFromArrays(
+      this.arrayTotalFemale, 
+      this.arrayTotalMale
+    );
+    }
+
+    return `
+      ${this.table.length !== 0 ? BodyTable.getOrdersTemplate(this.table).join('') : BodyTable.emptyTable()}
+      ${this.table.length !== 0 ? StaticticsRows.getTemplate(statisticsRowsData) : ''}
+    `;
+  }
+
+  addEventListenerOnCells() {
+    document.querySelectorAll('table tr.head th').forEach(th => {
+      th.addEventListener('click', e => {
+        e.preventDefault();
+  
+        if (th.querySelector('span') !== null) return;
+        if (th.textContent === 'Card Number') return;  // if (e.target.cellIndex === 4) return;
+
+        const span = getSpanWithArrow();
+  
+        document.querySelectorAll('table tr.head th').forEach(thEl => {
+          const spanEl =thEl.querySelector('span');
+          if(spanEl !== null) spanEl.remove();
+        });
+
+        this.table = BodyTable.sortTable(this.table, e.target.cellIndex);
+        th.append(span);
+
+        document.querySelector('table tbody').innerHTML = this.getBodyTableTemplate();
+        
+        BodyTable.addEventListenerOnUserInfo();
+      })
+    });
+  }
+
+  addListenerOnChangeInputValue() {
+    const input = document.getElementById('search');
+
+    input.addEventListener('keydown', e => {
+      if (e.which === 13) {
+        let indexSort = -1;
+        document.querySelectorAll('table tr.head th').forEach((thEl, index) => {
+          const spanEl =thEl.querySelector('span');
+          if(spanEl !== null) indexSort = index;
+        });
+
+        this.table = this.getOrders(e.target.value);
+        if (indexSort !== -1) this.table = BodyTable.sortTable(this.table, indexSort);
+
+        document.querySelector('table tbody').innerHTML = this.getBodyTableTemplate();
+
+        this.addEventListenerOnCells();
+        BodyTable.addEventListenerOnUserInfo();
+      }
+    });
   }
 }
 
