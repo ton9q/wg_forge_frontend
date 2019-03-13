@@ -9,7 +9,6 @@ import {
   getSpanWithArrow
 } from '../../../../utils/index';
 
-// import SearchRow from './../head/searchRow';
 import StaticticsRows from './statisticsRows';
 
 class BodyTable {
@@ -128,7 +127,7 @@ class BodyTable {
     }
 
     table.sort(compareArray);
-    console.log(table)
+
     return table;
   }
 
@@ -197,8 +196,14 @@ class BodyTable {
     }
 
     return `
-      ${this.table.length !== 0 ? BodyTable.getOrdersTemplate(this.table).join('') : BodyTable.emptyTable()}
-      ${this.table.length !== 0 ? StaticticsRows.getTemplate(statisticsRowsData) : ''}
+      ${this.table.length !== 0 
+        ? BodyTable.getOrdersTemplate(this.table).join('') 
+        : BodyTable.emptyTable()
+      }
+      ${this.table.length !== 0 
+        ? StaticticsRows.getTemplate(statisticsRowsData) 
+        : ''
+      }
     `;
   }
 
