@@ -64,6 +64,28 @@ const compare = (a,b, keyArray, type) => {
   }
 };
 
+const getMedianFromArray = array => {
+  array.sort((a, b) => a - b);
+
+  if (array.length % 2 !== 0) return (array.length - 1) / 2;
+
+  const middle = array.length / 2;
+  return ((array[middle - 1] + array[middle]) / 2).toFixed(2);
+};
+
+const getSumElementsFromArray = array => {
+  const reducer = (accum, curr) => accum + curr;
+
+  return array.reduce(reducer).toFixed(2);
+};
+
+const getAverageFromArray = array => {
+  if (!array.length) return 0;
+
+  return ( getSumElementsFromArray(array) / array.length).toFixed(2);
+};
+
+
 export {
   loadFavicon,
   orderFieldMapping,
@@ -73,5 +95,8 @@ export {
   getSpanWithArrow,
   getPrefixGender,
   getObjectFromDataById,
-  compare
+  compare,
+  getSumElementsFromArray,
+  getMedianFromArray,
+  getAverageFromArray,
 }

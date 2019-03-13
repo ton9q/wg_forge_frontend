@@ -8,7 +8,7 @@ class Table {
     return `
       <table>
         <thead>
-          <tr>${head}</tr>
+          ${head}
         </thead>
         <tbody>
           ${body}
@@ -18,8 +18,7 @@ class Table {
   };
 
   getTableTemplate() {
-    const bodyTemplate = this.body.join('');
-    return Table.template(this.head, bodyTemplate);
+    return Table.template(this.head, this.body);
   }
 }
 
